@@ -1,4 +1,4 @@
-module proto
+module github.com/Wokeewoo/proto
 
 go 1.22.0
 
