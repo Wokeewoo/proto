@@ -90,4 +90,6 @@ service EmployeeService {
   rpc Delete(DeleteEmployeeRequest) returns (DeleteEmployeeResponse);
   rpc Get(GetEmployeeRequest) returns (GetEmployeeResponse);
   rpc GetAll(ListEmployeesRequest) returns (stream ListEmployeesResponse);
+  rpc GetRoles(EmployeeRolesRequest) returns (EmployeeRolesResponse);
+  rpc Search(EmployeeSearchRequest) returns (stream EmployeeSearchResponse);
 }

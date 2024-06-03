@@ -27,6 +27,8 @@ type EmployeeServiceClient interface {
 	Delete(ctx context.Context, in *DeleteEmployeeRequest, opts ...grpc.CallOption) (*DeleteEmployeeResponse, error)
 	Get(ctx context.Context, in *GetEmployeeRequest, opts ...grpc.CallOption) (*GetEmployeeResponse, error)
 	GetAll(ctx context.Context, in *ListEmployeesRequest, opts ...grpc.CallOption) (EmployeeService_GetAllClient, error)
+	GetRoles(ctx context.Context, in *EmployeeRolesRequest, opts ...grpc.CallOption) (*EmployeeRolesResponse, error)
+	Search(ctx context.Context, in *EmployeeSearchRequest, opts ...grpc.CallOption) (EmployeeService_SearchClient, error)
 }
 
 type employeeServiceClient struct {
@@ -105,6 +107,47 @@ func (x *employeeServiceGetAllClient) Recv() (*ListEmployeesResponse, error) {
 	return m, nil
 }
 
+func (c *employeeServiceClient) GetRoles(ctx context.Context, in *EmployeeRolesRequest, opts ...grpc.CallOption) (*EmployeeRolesResponse, error) {
+	out := new(EmployeeRolesResponse)
+	err := c.cc.Invoke(ctx, "/employees.EmployeeService/GetRoles", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *employeeServiceClient) Search(ctx context.Context, in *EmployeeSearchRequest, opts ...grpc.CallOption) (EmployeeService_SearchClient, error) {
+	stream, err := c.cc.NewStream(ctx, &EmployeeService_ServiceDesc.Streams[1], "/employees.EmployeeService/Search", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &employeeServiceSearchClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type EmployeeService_SearchClient interface {
+	Recv() (*EmployeeSearchResponse, error)
+	grpc.ClientStream
+}
+
+type employeeServiceSearchClient struct {
+	grpc.ClientStream
+}
+
+func (x *employeeServiceSearchClient) Recv() (*EmployeeSearchResponse, error) {
+	m := new(EmployeeSearchResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // EmployeeServiceServer is the server API for EmployeeService service.
 // All implementations must embed UnimplementedEmployeeServiceServer
 // for forward compatibility
@@ -114,6 +157,8 @@ type EmployeeServiceServer interface {
 	Delete(context.Context, *DeleteEmployeeRequest) (*DeleteEmployeeResponse, error)
 	Get(context.Context, *GetEmployeeRequest) (*GetEmployeeResponse, error)
 	GetAll(*ListEmployeesRequest, EmployeeService_GetAllServer) error
+	GetRoles(context.Context, *EmployeeRolesRequest) (*EmployeeRolesResponse, error)
+	Search(*EmployeeSearchRequest, EmployeeService_SearchServer) error
 	mustEmbedUnimplementedEmployeeServiceServer()
 }
 
@@ -135,6 +180,12 @@ func (UnimplementedEmployeeServiceServer) Get(context.Context, *GetEmployeeReque
 }
 func (UnimplementedEmployeeServiceServer) GetAll(*ListEmployeesRequest, EmployeeService_GetAllServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedEmployeeServiceServer) GetRoles(context.Context, *EmployeeRolesRequest) (*EmployeeRolesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRoles not implemented")
+}
+func (UnimplementedEmployeeServiceServer) Search(*EmployeeSearchRequest, EmployeeService_SearchServer) error {
+	return status.Errorf(codes.Unimplemented, "method Search not implemented")
 }
 func (UnimplementedEmployeeServiceServer) mustEmbedUnimplementedEmployeeServiceServer() {}
 
@@ -242,6 +293,45 @@ func (x *employeeServiceGetAllServer) Send(m *ListEmployeesResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _EmployeeService_GetRoles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmployeeRolesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EmployeeServiceServer).GetRoles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/employees.EmployeeService/GetRoles",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EmployeeServiceServer).GetRoles(ctx, req.(*EmployeeRolesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EmployeeService_Search_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(EmployeeSearchRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(EmployeeServiceServer).Search(m, &employeeServiceSearchServer{stream})
+}
+
+type EmployeeService_SearchServer interface {
+	Send(*EmployeeSearchResponse) error
+	grpc.ServerStream
+}
+
+type employeeServiceSearchServer struct {
+	grpc.ServerStream
+}
+
+func (x *employeeServiceSearchServer) Send(m *EmployeeSearchResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // EmployeeService_ServiceDesc is the grpc.ServiceDesc for EmployeeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -265,11 +355,20 @@ var EmployeeService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "Get",
 			Handler:    _EmployeeService_Get_Handler,
 		},
+		{
+			MethodName: "GetRoles",
+			Handler:    _EmployeeService_GetRoles_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "GetAll",
 			Handler:       _EmployeeService_GetAll_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Search",
+			Handler:       _EmployeeService_Search_Handler,
 			ServerStreams: true,
 		},
 	},
