@@ -14,8 +14,8 @@ message Employee {
   string description = 6;
 }
 
-message EmployeeRoles {
-  repeated string role = 1;
+message EmployeeRole {
+  string role = 1;
 }
 
 message EmployeeSearch {
@@ -30,7 +30,7 @@ message EmployeeRolesRequest {
 }
 
 message EmployeeRolesResponse {
-  EmployeeRoles roles = 1;
+  repeated EmployeeRole roles = 1;
 }
 
 message EmployeeSearchRequest {
