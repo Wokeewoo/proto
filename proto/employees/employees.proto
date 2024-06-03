@@ -14,6 +14,33 @@ message Employee {
   string description = 6;
 }
 
+message EmployeeRoles {
+  repeated string role = 1;
+}
+
+message EmployeeSearch {
+  string name = 1;
+  string email = 2;
+  string phone = 3;
+  string role = 4;
+  string description = 5;
+}
+
+message EmployeeRolesRequest {
+}
+
+message EmployeeRolesResponse {
+  EmployeeRoles roles = 1;
+}
+
+message EmployeeSearchRequest {
+  EmployeeSearch search = 1;
+}
+
+message EmployeeSearchResponse {
+  repeated Employee employee = 1;
+}
+
 message CreateEmployeeRequest {
   Employee employee = 1;
 }
